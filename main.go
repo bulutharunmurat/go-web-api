@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"text/template"
 )
 
 type Page struct {
@@ -34,6 +35,7 @@ func main() {
 
 	http.HandleFunc("/", handler)
 	http.HandleFunc("/view/", viewHandler)
+	http.HandleFunc("/edit/", editHandler)
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
 
@@ -45,4 +47,14 @@ func viewHandler(w http.ResponseWriter, r *http.Request) {
 	title := r.URL.Path[len("/view/"):]
 	p, _ := loadPage(title)
 	fmt.Fprintf(w, "<h1>%s</h1><div>%s</div>", p.Title, p.Body)
+}
+func editHandler(w http.ResponseWriter, r *http.Request) {
+	title := r.URL.Path[len("/edit/"):]
+	p, err := loadPage(title)
+	if err != nil {
+		p = &Page{Title: title}
+	}
+
+	t, _ := template.ParseFiles("edit.html")
+	t.Execute(w, p)
 }
